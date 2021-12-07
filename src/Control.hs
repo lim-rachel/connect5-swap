@@ -8,7 +8,6 @@ import Model
 import Model.Board
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Model.Player
--- import Model.Player 
 
 -------------------------------------------------------------------------------
 
@@ -16,6 +15,7 @@ control :: PlayState -> BrickEvent n Tick -> EventM n (Next PlayState)
 control s ev = case ev of 
   AppEvent Tick                   -> nextS s =<< liftIO (play Y s)
   T.VtyEvent (V.EvKey V.KEnter _) -> nextS s =<< liftIO (play R s)
+  T.VtyEvent (V.EvKey (V.KChar 's') _) -> Brick.continue (controlSwap s)
   T.VtyEvent (V.EvKey V.KUp   _)  -> Brick.continue (move up    s)
   T.VtyEvent (V.EvKey V.KDown _)  -> Brick.continue (move down  s)
   T.VtyEvent (V.EvKey V.KLeft _)  -> Brick.continue (move left  s)
@@ -46,7 +46,10 @@ getStrategy Y s = plStrat (psO s)
 nextS :: PlayState -> Result Board -> EventM n (Next PlayState)
 -------------------------------------------------------------------------------
 nextS s b = case next s b of
-  Right s' -> continue s'
+  Right s' -> continue s' --continue playing the game
   Left res -> halt (s { psResult = res }) 
 
+-- update the playstate with swapped colors
+controlSwap :: PlayState -> PlayState 
+controlSwap s = s { psBoard = swapAllSpots (psBoard s) }
 

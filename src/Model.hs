@@ -47,9 +47,12 @@ isCurr s r c = Board.pRow p == r && Board.pCol p == c
     p = psPos s 
 
 next :: PlayState -> Board.Result Board.Board -> Either (Board.Result ()) PlayState
+--turn not successful, state stays the same
 next s Board.Retry     = Right s
+--turn successful, update playstate board and flip turns
 next s (Board.Cont b') = Right (s { psBoard = b'
                                   , psTurn  = Board.flipRY (psTurn s) })
+-- win or draw
 next s res             = nextBoard s res 
 
 nextBoard :: PlayState -> Board.Result a -> Either (Board.Result ()) PlayState

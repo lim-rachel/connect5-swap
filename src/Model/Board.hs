@@ -21,6 +21,8 @@ module Model.Board
   , down
   , left
   , right
+
+  , swapAllSpots
   )
   where
 
@@ -207,3 +209,23 @@ flipRY :: RY -> RY
 flipRY R = Y
 flipRY Y = R
 
+-- Swap stuff --
+
+--swap the color of the piece at the given position
+swapPiece :: Pos -> Board -> Board
+swapPiece pos board =
+  case M.lookup pos board of 
+     Just ry  -> M.insert pos (flipRY ry) board
+     Nothing  -> board
+
+--swap the colors of the the pieces in the given row number
+swapRow :: Int -> Board -> Board
+swapRow rowNum board = foldr swapPiece board [(Pos rowNum colNum) | colNum <- [1..numCols]]
+
+--swap the colors of all the pieces on the board
+swapAllSpots :: Board -> Board
+swapAllSpots board = foldr swapRow board [1..numRows]
+
+
+
+---
