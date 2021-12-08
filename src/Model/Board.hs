@@ -17,12 +17,14 @@ module Model.Board
   , flipRY
 
     -- * Moves
-  , up
-  , down
+  --, up
+  --, down
   , left
   , right
 
   , swapAllSpots
+  , numRows
+  , numCols
   )
   where
 
@@ -62,7 +64,7 @@ numToWin :: Int
 numToWin = 5
 
 positions :: [Pos]
-positions = [ Pos r c | r <- [1..numRows], c <- [1..numCols] ] 
+positions = [ Pos 0 c | c <- [1..numCols] ] 
 
 emptyPositions :: Board -> [Pos]
 emptyPositions board  = [ p | p <- positions, M.notMember p board]
@@ -180,7 +182,7 @@ isFull b = M.size b ==  numRows * numCols
 -------------------------------------------------------------------------------
 -- | Moves 
 -------------------------------------------------------------------------------
-
+{--
 up :: Pos -> Pos 
 up p = p 
   { pRow = max 1 (pRow p - 1) 
@@ -190,7 +192,7 @@ down :: Pos -> Pos
 down p = p 
   { pRow = min numRows (pRow p + 1) 
   } 
-
+--}
 left :: Pos -> Pos 
 left p = p 
   { pCol   = max 1 (pCol p - 1) 

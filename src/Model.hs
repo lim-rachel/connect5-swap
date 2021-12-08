@@ -9,7 +9,7 @@ import qualified Model.Player as Player
 -------------------------------------------------------------------------------
 -- | Ticks mark passing of time: a custom event that we constantly stream
 -------------------------------------------------------------------------------
-data Tick = Tick
+data Tick = Tic | Swap
 
 -------------------------------------------------------------------------------
 -- | Top-level App State ------------------------------------------------------
@@ -28,6 +28,8 @@ data PlayState = PS
   , psTurn   :: Board.RY        -- ^ whose turn 
   , psPos    :: Board.Pos       -- ^ current cursor
   , psResult :: Board.Result () -- ^ result      
+  , roundsTillSwap :: Int
+  , swapping :: Int
   } 
 
 init :: Int -> PlayState
@@ -39,6 +41,8 @@ init n = PS
   , psTurn   = Board.R
   , psPos    = head Board.positions 
   , psResult = Board.Cont ()
+  , roundsTillSwap = 5
+  , swapping = 0
   }
 
 isCurr :: PlayState -> Int -> Int -> Bool
@@ -51,6 +55,11 @@ next :: PlayState -> Board.Result Board.Board -> Either (Board.Result ()) PlaySt
 next s Board.Retry     = Right s
 --turn successful, update playstate board and flip turns
 next s (Board.Cont b') = Right (s { psBoard = b'
+                                  , swapping = if (roundsTillSwap s) == 0
+                                      && (psTurn s) == Board.Y then 6 else (swapping s)
+                                  , roundsTillSwap = (case (psTurn s) of
+                                        Board.R -> (roundsTillSwap s) - 1
+                                        Board.Y -> roundsTillSwap s)
                                   , psTurn  = Board.flipRY (psTurn s) })
 -- win or draw
 next s res             = nextBoard s res 
@@ -67,4 +76,3 @@ nextBoard s res = case res' of
              , psBoard = mempty                -- clear the board
              , psTurn  = Score.startPlayer sc' -- toggle start player
              } 
-
