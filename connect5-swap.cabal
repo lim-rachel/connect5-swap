@@ -19,7 +19,6 @@ executable connect5-swap
                        Control,
                        Model, 
                        Model.Board,
-                       Model.Score,
                        Model.Player
 		       
   default-language:    Haskell2010

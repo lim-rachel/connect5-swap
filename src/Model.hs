@@ -3,7 +3,6 @@ module Model where
 
 import Prelude hiding ((!!))
 import qualified Model.Board  as Board
-import qualified Model.Score  as Score
 import qualified Model.Player as Player
 
 -------------------------------------------------------------------------------
@@ -23,24 +22,20 @@ data State
 data PlayState = PS
   { psX      :: Player.Player   -- ^ player X info
   , psO      :: Player.Player   -- ^ player O info
-  , psScore  :: Score.Score     -- ^ current score
   , psBoard  :: Board.Board     -- ^ current board
   , psTurn   :: Board.RY        -- ^ whose turn 
-  , psPos    :: Board.Pos       -- ^ current cursor
-  , psResult :: Board.Result () -- ^ result      
+  , psPos    :: Board.Pos       -- ^ current cursor   
   , roundsTillSwap :: Int
   , swapping :: Int
   } 
 
-init :: Int -> PlayState
-init n = PS 
+init :: PlayState
+init = PS 
   { psX      = Player.human
   , psO      = Player.rando
-  , psScore  = Score.init n
   , psBoard  = Board.init
   , psTurn   = Board.R
   , psPos    = head Board.positions 
-  , psResult = Board.Cont ()
   , roundsTillSwap = 5
   , swapping = 0
   }
@@ -50,7 +45,7 @@ isCurr s r c = Board.pRow p == r && Board.pCol p == c
   where 
     p = psPos s 
 
-next :: PlayState -> Board.Result Board.Board -> Either (Board.Result ()) PlayState
+next :: PlayState -> Board.Result Board.Board -> Either PlayState PlayState
 --turn not successful, state stays the same
 next s Board.Retry     = Right s
 --turn successful, update playstate board and flip turns
@@ -62,8 +57,8 @@ next s (Board.Cont b') = Right (s { psBoard = b'
                                         Board.Y -> roundsTillSwap s)
                                   , psTurn  = Board.flipRY (psTurn s) })
 -- win or draw
-next s res             = nextBoard s res 
-
+next s res             = Left s
+{--
 nextBoard :: PlayState -> Board.Result a -> Either (Board.Result ()) PlayState
 nextBoard s res = case res' of
                     Board.Win _ -> Left res' 
@@ -75,4 +70,4 @@ nextBoard s res = case res' of
     s'   = s { psScore = sc'                   -- update the score
              , psBoard = mempty                -- clear the board
              , psTurn  = Score.startPlayer sc' -- toggle start player
-             } 
+             } --}

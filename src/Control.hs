@@ -29,14 +29,14 @@ move :: (Pos -> Pos) -> PlayState -> PlayState
 move f s = s { psPos = f (psPos s) }
 
 -------------------------------------------------------------------------------
-play :: RY -> PlayState -> IO (Either Board (Result Board))
+play :: RY -> PlayState -> IO (Result Board)
 -------------------------------------------------------------------------------
 play ry s = 
-  if (swapping s) > 0 then return (Right Retry)
+  if (swapping s) > 0 then return Retry
   else (if psTurn s == ry then do
                 r <- put (psBoard s) ry <$> getPos ry s
-                return (Right r)
-        else return (Right Retry))
+                return r
+        else return Retry)
 
 getPos :: RY -> PlayState -> IO Pos
 getPos ry s = getStrategy ry s (psPos s) (psBoard s) ry
@@ -46,13 +46,11 @@ getStrategy R s = plStrat (psX s)
 getStrategy Y s = plStrat (psO s)
 
 -------------------------------------------------------------------------------
-nextS :: PlayState -> Either Board (Result Board) -> EventM n (Next PlayState)
+nextS :: PlayState -> Result Board -> EventM n (Next PlayState)
 -------------------------------------------------------------------------------
-nextS s b = case b of
-  Left  b' -> continue (s { roundsTillSwap = 5, psBoard = b' }) --swapped, reset counter
-  Right b' -> (case next s b' of
+nextS s b = case next s b of
      Right s' -> continue s' --continue playing the game
-     Left res -> halt (s { psResult = res }) ) 
+     Left s'  -> halt s' 
 
 -- update the playstate with swapped colors
 controlSwap :: PlayState -> PlayState 
