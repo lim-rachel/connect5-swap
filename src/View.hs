@@ -2,13 +2,12 @@ module View (view) where
 
 import Brick
 import Brick.Widgets.Center (center)
-import Brick.Widgets.Border (border, hBorder, vBorder)
+import Brick.Widgets.Border (border)
 import Brick.Widgets.Border.Style (unicodeRounded)
-import Text.Printf (printf)
 
 import Model
 import Model.Board
-import Graphics.Vty hiding (dim)
+
 
 -------------------------------------------------------------------------------
 view :: PlayState -> [Widget String]
@@ -16,7 +15,7 @@ view :: PlayState -> [Widget String]
 view s = [view' s]
 
 view' :: PlayState -> Widget String
-view' s = 
+view' s = if startScreen s then titleScreen s else
   hTile [
     padRight (Pad 4) $ vTile [
       vLimit 2 $ padLeftRight 1 $ mkOutsideRow s,
@@ -25,13 +24,17 @@ view' s =
         padTop (Pad 1) $ padLeftRight 1 $
           vTile [ mkRow s row | row <- [1..numRows] ]
     ],
-    vTile [mkTitle s, mkSwapCount s]
+    padTop (Pad 1) $ vTile [mkTitle s, mkSwapCount s, mkGameStatus s, mkKey]
   ]
 
-header :: PlayState -> String
-header s = printf "Connect5-Swap Turn = %s, col = %d, countdown = %d" (show (psTurn s)) (pCol p) (roundsTillSwap s)
-  where 
-    p    = psPos s
+titleScreen :: PlayState -> Widget n
+titleScreen s = center $ (center $ mkTitle s
+        <=> (padTop (Pad 1) $ withBorderStyle unicodeRounded $ border $
+             vLimit 3 $ padLeftRight 1 $ hLimit 12 $
+               vBox [ center $ str "Select",
+                      center $ str "[1] 1-player",
+                      center $ str "[2] 2-player" ]))
+
 
 mkRow :: PlayState -> Int -> Widget n
 mkRow s row = vLimit 3 (hTile [ mkCell s row i | i <- [1..numCols] ])
@@ -114,3 +117,27 @@ mkSwapCount :: PlayState -> Widget n
 mkSwapCount s = padTop (Pad 1) $
   withBorderStyle unicodeRounded $ border $ padLeftRight 1 $
   str ("Rounds until swap: " ++ show (roundsTillSwap (s)))
+
+mkGameStatus :: PlayState -> Widget n
+mkGameStatus s =
+  withBorderStyle unicodeRounded $ border $ padLeftRight 1 $ txt 
+  where
+    txt = if inGame s then
+            (if swapping s > 0 then str ("Swapping...")
+             else str ("Player " ++ (show (psTurn s)) ++ "'s turn"))
+          else case (psResult s) of
+            Draw _   -> str ("Draw")
+            Win ry _ -> ( case ry of
+                  R -> withAttr (attrName "red") $ str ("Red wins!")
+                  Y -> withAttr (attrName "yellow") $str ("Yellow wins!"))
+            _ -> str (" ")
+
+mkKey :: Widget n 
+mkKey = 
+  padTop (Pad 2) $
+  withBorderStyle unicodeRounded $ border $ padLeftRight 1 $ 
+  vBox [ str "⇦ ⇨    change columns",
+         str "Enter  drop piece",
+         str "r      restart",
+         str "Esc    exit game"
+  ]

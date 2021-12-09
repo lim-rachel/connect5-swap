@@ -77,8 +77,8 @@ init = M.empty
 -------------------------------------------------------------------------------
                  
 data Result a 
-  = Draw 
-  | Win RY
+  = Draw a
+  | Win RY a
   | Retry 
   | Cont a
   deriving (Eq, Functor, Show)
@@ -101,9 +101,9 @@ dropPiece board rowNum colNum =
 
 result :: Board -> Result Board
 result b 
-  | isFull  b    = Draw
-  | gameWon b R  = Win  R 
-  | gameWon b Y  = Win  Y
+  | isFull  b    = Draw b
+  | gameWon b R  = Win  R b
+  | gameWon b Y  = Win  Y b
   | otherwise    = Cont b
 
 --return true if specified player has won the game
@@ -204,7 +204,7 @@ right p = p
   } 
 
 boardWinner :: Result a -> Maybe RY
-boardWinner (Win ry) = Just ry
+boardWinner (Win ry _) = Just ry
 boardWinner _        = Nothing
 
 flipRY :: RY -> RY
